@@ -2,15 +2,15 @@ const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
-const { customError } = require("../../utils/customError.js");
+const { customError } = require("../utils/customError.js");
 
-const { checkQuestionIdQuery } = require("../query.js");
-const { insertAnswerQuery } = require("../query.js");
-const { checkAnswerIdQuery } = require("../query.js");
-const { updateAnswerQuery } = require("../query.js");
-const { deleteAnswerQuery } = require("../query.js");
-const { executeQuery } = require("../../utils/db.js");
-const { send_response } = require("../../utils/response.js");
+const { checkQuestionIdQuery } = require("../answers/query.js");
+const { insertAnswerQuery } = require("../answers/query.js");
+const { checkAnswerIdQuery } = require("../answers/query.js");
+const { updateAnswerQuery } = require("../answers/query.js");
+const { deleteAnswerQuery } = require("../answers/query.js");
+const { executeQuery } = require("../utils/db.js");
+const { send_response } = require("../utils/response.js");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -20,6 +20,7 @@ createAnswer = async (req, res) => {
        const {question_id , content} = req.body;
        try {
               const token = req.headers.authorization.split(" ")[1];
+              console.log(token)
               if (!token) {
                      throw new customError("Unauthorized. Token missing." , 400);
               }
@@ -111,6 +112,21 @@ deleteAnswer = async (req, res) => {
        }
 };
 
+getAllAnswers = async (req , res) => {
+       const {question_id} = req.body;
+       try {
+              const getAllAnswersQuery = () => {
+                     return `SELECT * FROM answers where question_id = ?`;
+              }
+              const result = await executeQuery(getAllAnswersQuery() , [question_id]);
+              response_output = {"statusCode" : 200 , "Message" : "Answers fetched successfully" , "Data": result}
+       } catch (error) {
+              response_output = {"statusCode" : error.errorCode , "Message" : error.message , "Data": null}
+       } finally {
+              return send_response(res , response_output); 
+       }
+       
+}
 getUserIDFromAnswerId = async (answer_id) => {
        const answerUserId = await executeQuery(checkAnswerIdQuery(), [answer_id]);
        return answerUserId[0].user_id;
@@ -154,5 +170,5 @@ questionExists = async (question_id) => {
        return questionExists.length == 1;
 }
      
-module.exports = { createAnswer , updateAnswer , deleteAnswer }
+module.exports = { createAnswer , updateAnswer , deleteAnswer , getAllAnswers}
 

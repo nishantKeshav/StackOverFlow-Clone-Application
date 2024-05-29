@@ -1,11 +1,12 @@
 const express = require('express');
 const router  = express.Router();
 
-const { createQuestion , updateQuestion , deleteQuestion } = require('./controller');
+const { createQuestion , updateQuestion , deleteQuestion , getAllQuestion } = require('../questions/controller');
 const { validateToken } = require('../utils/tokenValidation');
-const { createQuestionValidation , updateQuestionValidation , deleteQuestionValidation } = require('../utils/validation/questionValidation');
+// const { createQuestionValidation , updateQuestionValidation , deleteQuestionValidation } = require('../utils/validation/questionValidation');
 
-router.put('/insertQuestion' , createQuestionValidation , validateToken , createQuestion);
-router.patch('/updateQuestion' , updateQuestionValidation , validateToken , updateQuestion);
-router.delete('/deleteQuestion' , deleteQuestionValidation , validateToken , deleteQuestion);
+router.put('/insertQuestion', createQuestion);
+router.patch('/updateQuestion' , updateQuestion);
+router.delete('/deleteQuestion' , validateToken , deleteQuestion);
+router.post('/getAllQuestion' , getAllQuestion);
 module.exports = router;

@@ -3,13 +3,13 @@ dotenv.config();
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 
-const { insertQuestionQuery } = require("../query.js");
-const { executeQuery } = require("../../utils/db.js");
-const { send_response } = require("../../utils/response.js");
-const { checkQuestionIdQuery } = require("../query.js");
-const { updateQuestionQuery } = require("../query.js");
-const { deleteQuestionQuery } = require("../query.js");
-const { customError } = require("../../utils/customError.js");
+const { insertQuestionQuery } = require("../questions/query.js");
+const { executeQuery } = require("../utils/db.js");
+const { send_response } = require("../utils/response.js");
+const { checkQuestionIdQuery } = require("../questions/query.js");
+const { updateQuestionQuery } = require("../questions/query.js");
+const { deleteQuestionQuery } = require("../questions/query.js");
+const { customError } = require("../utils/customError.js");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -22,6 +22,7 @@ createQuestion = async (req, res) => {
               if (!token) {
                      throw new customError("Unauthorized. Token missing." , 400);
               }
+              console.log(token);
               const decodedToken = jwt.verify(token, SECRET_KEY);
               const loggedinUserId = decodedToken.user_id;
               const question_id = uuidv4();
@@ -97,6 +98,22 @@ deleteQuestion = async (req, res) => {
        }
 };
 
+getAllQuestion = async (req , res) => {
+       try {
+              const getAllQuestionQuery = () => {
+                     return `SELECT * FROM questions`;
+              }
+              const result = await executeQuery(getAllQuestionQuery() , []);
+              // console.log(result)
+              response_output = {"statusCode" : 200 , "Message" : "Questions fetched successfully" , "Data": result}
+       } catch (error) {
+              response_output = {"statusCode" : error.errorCode , "Message" : error.message , "Data": null}
+       } finally {
+              return send_response(res , response_output); 
+       }
+       
+}
+
 getUserIDFromQuestionId = async (question_id) => {
        const questionUserId = await executeQuery(checkQuestionIdQuery(), [question_id]);
        return questionUserId[0].user_id;
@@ -121,4 +138,4 @@ compareUsers = async (loggedinUserId, questionOwnerUser_id) => {
        return loggedinUserId === questionOwnerUser_id;
 }
 
-module.exports = { createQuestion , updateQuestion , deleteQuestion }
+module.exports = { createQuestion , updateQuestion , deleteQuestion , getAllQuestion }

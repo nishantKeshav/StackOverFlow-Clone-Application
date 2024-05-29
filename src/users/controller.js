@@ -2,12 +2,12 @@ const dotenv = require("dotenv");
 dotenv.config();
 const jwt = require("jsonwebtoken");
 
-const { checkUserQuery } = require("../query.js");
-const { executeQuery } = require("../../utils/db.js");
-const { insertUserQuery } = require("../query.js")
-const { send_response } = require("../../utils/response.js");
-const { customError } = require("../../utils/customError.js");
-const { userLogin } = require("./usersController/userLogin.js");
+const { checkUserQuery } = require("../users/query.js");
+const { executeQuery } = require("../utils/db.js");
+const { insertUserQuery } = require("../users/query.js")
+const { send_response } = require("../utils/response.js");
+const { customError } = require("../utils/customError.js");
+const { uuid } = require('uuidv4');
 
 const SECRET_KEY = process.env.SECRET_KEY;
 const TOKEN_EXPIRATION = "1d";
@@ -17,7 +17,8 @@ let response_output;
 
 userRegister = async (req, res) => {
        const { username , password } = req.body;
-       const user_id = uuidv4();
+       const user_id = uuid();
+       // console.log(user_id);
        try {
          if (!username || !password) {
            throw new customError("Username and password are required" , 400);
@@ -26,9 +27,11 @@ userRegister = async (req, res) => {
          if (ifuserExists) {
            throw new customError("Username already exists" , 400);
          }
+         console.log(username , password);
          await executeQuery(insertUserQuery(), [user_id , username  , password]);
          response_output = {"statusCode" : 200 , "Message" : "User Registered successfully" , "Data": {"UserName" : username}}
        } catch (error) {
+              console.log("error" ,  error);
          response_output = {"statusCode" : error.errorCode , "Message" : error.message , "Data": null};
        } finally {
          await send_response(res , response_output);
@@ -37,7 +40,6 @@ userRegister = async (req, res) => {
 
 userLogin = async (req, res) => {
        const { username, password} = req.body;
-
        if (!username || !password) {
               throw new customError("Username and password are required" , 400);
        }
@@ -54,8 +56,10 @@ userLogin = async (req, res) => {
                      throw new customError("Password does not match" , 400);
               }
               const token = await generateToken(username , user_id);
+              console.log(token);
               response_output = {"statusCode" : 200 , "Message" : "User Logged In successfully" , "Data": {"UserName" : username ,"Token" : token}}
        } catch (error) {
+              
               response_output = {"statusCode" : error.errorCode , "Message" : error.message , "Data": null}
        } finally {
               await send_response(res, response_output);

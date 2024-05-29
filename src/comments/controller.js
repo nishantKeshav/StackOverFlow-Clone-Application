@@ -3,15 +3,14 @@ dotenv.config();
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 
-const { checkAnswerIdQuery } = require("../query.js");
-const { insertCommentQuery } = require("../query.js");
-const { executeQuery } = require("../../utils/db.js");
-const { send_response } = require("../../utils/response.js");
-const { checkCommentIdQuery } = require("../query.js");
-const { updateCommentQuery } = require("../query.js");
-const { checkCommentIdQuery } = require("../query.js");
-const { deleteCommentQuery } = require("../query.js");
-const { customError } = require("../../utils/customError.js");
+const { checkAnswerIdQuery } = require("../comments/query.js");
+const { insertCommentQuery } = require("../comments/query.js");
+const { executeQuery } = require("../utils/db.js");
+const { send_response } = require("../utils/response.js");
+const { checkCommentIdQuery } = require("../comments/query.js");
+const { updateCommentQuery } = require("../comments/query.js");
+const { deleteCommentQuery } = require("../comments/query.js");
+const { customError } = require("../utils/customError.js");
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
@@ -107,7 +106,21 @@ deleteComment = async (req, res) => {
        }
 };
 
-
+getAllComments= async (req , res) => {
+       const {answer_id} = req.body;
+       try {
+              const getAllCommentsQuery = () => {
+                     return `SELECT * FROM comments where answer_id = ?`;
+              }
+              const result = await executeQuery(getAllCommentsQuery() , [answer_id]);
+              response_output = {"statusCode" : 200 , "Message" : "Comments fetched successfully" , "Data": result}
+       } catch (error) {
+              response_output = {"statusCode" : error.errorCode , "Message" : error.message , "Data": null}
+       } finally {
+              return send_response(res , response_output); 
+       }
+       
+}
 commentExists = async (comment_id) => {
        const commentExists = await executeQuery(checkCommentIdQuery(), [comment_id]);
        return commentExists.length == 1;
@@ -142,5 +155,5 @@ answerExists = async (answer_id) => {
        return answerExists.length == 1;
 }
 
-module.exports = { createComment, updateComment, deleteComment };
+module.exports = { createComment, updateComment, deleteComment , getAllComments};
 

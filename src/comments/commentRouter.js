@@ -1,13 +1,14 @@
 const express = require('express');
 const router  = express.Router();
 
-const { createComment , updateComment , deleteComment } = require('./controller');
+const { createComment , updateComment , deleteComment , getAllComments } = require('../comments/controller');
 const { validateToken } = require('../utils/tokenValidation');
-const { createCommentValidation , updateCommentValidation , deleteCommentValidation } = require('../utils/validation/commentValidation');
+// const { createCommentValidation , updateCommentValidation , deleteCommentValidation } = require('../utils/validation/commentValidation');
 
-router.put('/insertComment' , createCommentValidation, validateToken , createComment);
-router.patch('/updateComment' , updateCommentValidation, validateToken , updateComment);
-router.delete('/deleteComment' , deleteCommentValidation, validateToken , deleteComment);
+router.put('/insertComment' , createComment);
+router.patch('/updateComment' ,validateToken , updateComment);
+router.delete('/deleteComment' ,validateToken , deleteComment);
+router.post('/getComments' , getAllComments)
 
 
 module.exports = router;
